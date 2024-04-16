@@ -5,28 +5,22 @@
 // If the guess is not a match, increment the incorrect guess count and change the class name on the apples container to change the count of apples
 // If the letter has already been guessed, ignore it
 
+/*
+- validate key pressed..ignore if key value is not alphabetic or if letter has already been guessed
+- add letter to guessedLetters
+- if guess appears in chosen word
+  - output instances of guessed letter in their respective blank spaces
+- if doesn't appear in chosen word
+  - wrongGuesses ++
+  - change class name in apples container to change count of apples
+  - if wrongguesses === totalGuessesAllowed, game over
+    - Display message and link to start new game.
+    - remove event listener for keyup event
 
+- if Play Another button clicked, new game constructed
+- class on apples container gets reset to show 6 apples
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// When a letter is guessed, write it to the guesses container
-// If the number of incorrect guesses matches the number of guesses available for a game (6 in this case), the game is over. Display a message and a link to start a new game. Unbind the keypress event
-// If all of the letters of the word have been revealed, display a win message and a link to start a new game. Unbind the keypress event
-// When the "Play another" button is clicked, a new game is constructed. The class on the apples container gets reset to show 6 apples again
+*/
 
 document.addEventListener('DOMContentLoaded', () => {
   let randomWord = function() {
@@ -44,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
       this.wrongGuesses = 0;
       this.guessedLetters = [];
       this.totalGuessesAllowed = 6;
-      this.word = this.chooseWord();
+      this.word = this.chooseWord().toUpperCase();
       this.init();
     }
   
@@ -67,9 +61,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  new Game();
+  let game = new Game();
 
   document.addEventListener('keyup', e => {
-    
+    let guess = e.key.toUpperCase();
+
+    if (notAlphabetic(guess) || alreadyGuessed(guess)) {
+      // ignore
+    } else {
+      addToGuessed(guess);
+      
+      if (game.word.includes(guess)) {
+        // output instances of guessed letter in respectivee blank spaces
+      } else {
+        game.wrongGuesses ++;
+        removeApple();
+        
+        if (game.wrongGuesses === game.totalGuessesAllowed) { gameOver() };
+      }
+    }
+  })
+
+  document.getElementById('replay').addEventListener('click', e => {
+    e.preventDefault();
+
+    new Game();
+    resetApples();
   })
 })
