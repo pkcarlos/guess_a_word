@@ -47,10 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
       let result = word ? word : "Sorry, I've run out of words!";
       return result;
     }
-  
+
     init() {
       let blanksCount = this.word.length;
-      let h2 = document.querySelector('H2');
+      let h2 = document.querySelector('#spaces H2');
       let count = 0;
 
       while (count < blanksCount) {
@@ -61,31 +61,107 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  let game = new Game();
-
-  document.addEventListener('keyup', e => {
-    let guess = e.key.toUpperCase();
-
+  function handleKeyup(e) {
+    function notAlphabetic(key) {
+      return !/[A-Z]/.test(key);
+    }
+  
+    function alreadyGuessed(key) {
+      return game.guessedLetters.includes(key);
+    }
+  
+    function addToGuessed(key) {
+      game.guessedLetters.push(key);
+  
+      let h2 = document.querySelector('#guesses H2');
+      let span = document.createElement('SPAN');
+      span.textContent = key;
+      h2.parentNode.appendChild(span);
+    }
+  
+    function hasLetter(key) {
+      return game.word.includes(key);
+    }
+  
+    function revealLetters(key) {
+      let spans = document.querySelectorAll('#spaces SPAN'); 
+  
+      for (i = 0; i < spans.length; i ++) {
+        let span = spans[i];
+        if (span.textContent === '' && game.word[i] === key) {
+          span.textContent = key;
+        }
+      }
+    }
+  
+    function removeApple() {
+      let applesDiv = document.getElementById('apples');
+      let classStr = `guess_${game.wrongGuesses}`;
+      applesDiv.className = classStr;
+    }
+  
+    function gameOver(msg, status) {
+      document.getElementById('replay').hidden = false;
+      document.getElementById('message').textContent = `${msg}`;
+      document.removeEventListener('keyup', handleKeyup);
+      document.body.className = `${status}`;
+    }
+  
+    function playerGuessesWord() {
+      let spans = document.querySelectorAll('#spaces SPAN');
+      return Array.from(spans).every(span => span.textContent !== '');
+    }
+  
+    const guess = e.key.toUpperCase();
+  
     if (notAlphabetic(guess) || alreadyGuessed(guess)) {
-      // ignore
+      return;
     } else {
       addToGuessed(guess);
       
-      if (game.word.includes(guess)) {
-        // output instances of guessed letter in respectivee blank spaces
+      if (hasLetter(guess)) {
+        revealLetters(guess);
+
+        if (playerGuessesWord()) {
+          let msg = "Congratulations, you win!";
+          let status = 'win';
+          gameOver(msg, status);
+        }
       } else {
         game.wrongGuesses ++;
         removeApple();
         
-        if (game.wrongGuesses === game.totalGuessesAllowed) { gameOver() };
+        if (game.wrongGuesses === game.totalGuessesAllowed) {
+          let msg = "Sorry, you're out of guesses!";
+          let status = 'lose';
+          gameOver(msg, status);
+        }
       }
     }
-  })
+  }
 
-  document.getElementById('replay').addEventListener('click', e => {
+  function resetGame(e) {
     e.preventDefault();
 
+    document.getElementById('apples').className = '';
+
+    // replace children from guesses and spaces with first child
+    let spaceDiv = document.getElementById('spaces');
+    let guessesDiv = document.getElementById('guesses');
+    let spacesDivChildren = spaceDiv.children;
+    let guessesDivChildren = guessesDiv.children;
+    spaceDiv.replaceChildren(spacesDivChildren[0]);
+    guessesDiv.replaceChildren(guessesDivChildren[0]);
+    
+    document.getElementById('message').textContent = '';
+    document.getElementById('replay').hidden = true;
+    document.body.className = '';
+
     new Game();
-    resetApples();
-  })
+  }
+
+  let game = new Game();
+
+  document.addEventListener('keyup', handleKeyup)
+  document.getElementById('replay').addEventListener('click', resetGame)
 })
