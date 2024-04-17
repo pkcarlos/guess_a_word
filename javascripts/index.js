@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return result;
     }
 
-    init() {
+    addWordBlanks() {
       let blanksCount = this.word.length;
       let h2 = document.querySelector('#spaces H2');
       let count = 0;
@@ -59,109 +59,129 @@ document.addEventListener('DOMContentLoaded', () => {
         count ++;
       }
     }
-  }
 
-  function handleKeyup(e) {
-    function notAlphabetic(key) {
-      return !/[A-Z]/.test(key);
+    removeSpanElements(div) {
+      let span = div.querySelectorAll('SPAN');
+      
+      span.forEach(span => {
+        div.removeChild(span);
+      })
     }
-  
-    function alreadyGuessed(key) {
-      return game.guessedLetters.includes(key);
+
+    resetWordAndGuesses() {
+      let spacesDiv = document.getElementById('spaces');
+      let guessesDiv = document.getElementById('guesses');
+
+      [spacesDiv, guessesDiv].forEach(div => this.removeSpanElements(div));
     }
-  
-    function addToGuessed(key) {
-      game.guessedLetters.push(key);
-  
+
+    resetDisplay() {
+      this.resetWordAndGuesses();
+      this.addWordBlanks();
+      document.getElementById('apples').className = '';
+      document.getElementById('message').textContent = '';
+      document.getElementById('replay').hidden = true;
+      document.body.className = '';
+
+    }
+
+    init() {
+      this.resetDisplay();
+      document.addEventListener('keyup', this.handleKeyup.bind(this));
+    }
+
+    notAlphabetic(key) {
+      return !/^[A-Z]$/.test(key);
+    }
+
+    alreadyGuessed(key) {
+      return this.guessedLetters.includes(key);
+    }
+
+    addToGuessed(key) {
+      this.guessedLetters.push(key);
+      alert(`guessed letters: ${this.guessedLetters}`);
       let h2 = document.querySelector('#guesses H2');
       let span = document.createElement('SPAN');
       span.textContent = key;
       h2.parentNode.appendChild(span);
     }
   
-    function hasLetter(key) {
-      return game.word.includes(key);
+    hasLetter(key) {
+      return this.word.includes(key);
     }
   
-    function revealLetters(key) {
+    revealLetters(key) {
       let spans = document.querySelectorAll('#spaces SPAN'); 
   
-      for (i = 0; i < spans.length; i ++) {
+      for (let i = 0; i < spans.length; i ++) {
         let span = spans[i];
-        if (span.textContent === '' && game.word[i] === key) {
+        if (span.textContent === '' && this.word[i] === key) {
           span.textContent = key;
         }
       }
     }
   
-    function removeApple() {
+    removeApple() {
       let applesDiv = document.getElementById('apples');
-      let classStr = `guess_${game.wrongGuesses}`;
+      let classStr = `guess_${this.wrongGuesses}`;
       applesDiv.className = classStr;
     }
   
-    function gameOver(msg, status) {
+    gameOver(msg, status) {
       document.getElementById('replay').hidden = false;
       document.getElementById('message').textContent = `${msg}`;
-      document.removeEventListener('keyup', handleKeyup);
       document.body.className = `${status}`;
+      document.removeEventListener('keyup', this.handleKeyup);
     }
   
-    function playerGuessesWord() {
+    playerGuessesWord() {
       let spans = document.querySelectorAll('#spaces SPAN');
       return Array.from(spans).every(span => span.textContent !== '');
     }
-  
-    const guess = e.key.toUpperCase();
-  
-    if (notAlphabetic(guess) || alreadyGuessed(guess)) {
-      return;
-    } else {
-      addToGuessed(guess);
-      
-      if (hasLetter(guess)) {
-        revealLetters(guess);
 
-        if (playerGuessesWord()) {
-          let msg = "Congratulations, you win!";
-          let status = 'win';
-          gameOver(msg, status);
-        }
+    win() {
+      let msg = "Congratulations, you win!";
+      let status = 'win';
+      this.gameOver(msg, status);
+    }
+
+    lose() {
+      let msg = "Sorry, you're out of guesses!";
+      let status = 'lose';
+      this.gameOver(msg, status);
+    }
+
+    handleKeyup(e) {
+      const guess = e.key.toUpperCase();
+      
+      if (this.notAlphabetic(guess) || this.alreadyGuessed(guess)) {
+        return;
       } else {
-        game.wrongGuesses ++;
-        removeApple();
-        
-        if (game.wrongGuesses === game.totalGuessesAllowed) {
-          let msg = "Sorry, you're out of guesses!";
-          let status = 'lose';
-          gameOver(msg, status);
+        this.addToGuessed(guess);
+        if (this.hasLetter(guess)) {
+          this.revealLetters(guess);
+  
+          if (this.playerGuessesWord()) {
+            this.win();
+          }
+        } else {
+          this.wrongGuesses ++;
+          this.removeApple();
+          
+          if (this.wrongGuesses === this.totalGuessesAllowed) {
+            this.lose();
+          }
         }
       }
     }
   }
 
-  function resetGame(e) {
-    e.preventDefault();
-
-    document.getElementById('apples').className = '';
-
-    // replace children from guesses and spaces with first child
-    let spaceDiv = document.getElementById('spaces');
-    let guessesDiv = document.getElementById('guesses');
-    let spacesDivChildren = spaceDiv.children;
-    let guessesDivChildren = guessesDiv.children;
-    spaceDiv.replaceChildren(spacesDivChildren[0]);
-    guessesDiv.replaceChildren(guessesDivChildren[0]);
-    
-    document.getElementById('message').textContent = '';
-    document.getElementById('replay').hidden = true;
-    document.body.className = '';
-
-    new Game();
-  }
-
   let game = new Game();
 
-  document.addEventListener('keyup', handleKeyup)
-  document.getElementById('replay').addEventListener('click', resetGame)
+  document.getElementById('replay').addEventListener('click', e => {
+    e.preventDefault();
+
+    new Game();
+  })
 })
