@@ -24,7 +24,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   let randomWord = function() {
-    let words = ['apple', 'banana', 'orange', 'pear'];
+    let words = ['apple', 'banana', 'pear'];
   
     return function() {
       let maxNum = words.length - 1;
@@ -38,14 +38,17 @@ document.addEventListener('DOMContentLoaded', () => {
       this.wrongGuesses = 0;
       this.guessedLetters = [];
       this.totalGuessesAllowed = 6;
-      this.word = this.chooseWord().toUpperCase();
+      this.word = randomWord();
+      
+      if (this.word) {
+        this.word = this.word.toUpperCase();
+      } else {
+        this.displayMessage("Sorry, I've run out of words!");
+        this.hideReplay();
+        return this;
+      }
+
       this.init();
-    }
-  
-    chooseWord() {
-      let word = randomWord();
-      let result = word ? word : "Sorry, I've run out of words!";
-      return result;
     }
 
     addWordBlanks() {
@@ -82,12 +85,12 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('message').textContent = '';
       document.getElementById('replay').hidden = true;
       document.body.className = '';
-
     }
 
     init() {
       this.resetDisplay();
-      document.addEventListener('keyup', this.handleKeyup.bind(this));
+      this.handleKeyupBound = this.handleKeyup.bind(this);
+      document.addEventListener('keyup', this.handleKeyupBound);
     }
 
     notAlphabetic(key) {
@@ -100,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     addToGuessed(key) {
       this.guessedLetters.push(key);
-      alert(`guessed letters: ${this.guessedLetters}`);
       let h2 = document.querySelector('#guesses H2');
       let span = document.createElement('SPAN');
       span.textContent = key;
@@ -128,11 +130,27 @@ document.addEventListener('DOMContentLoaded', () => {
       applesDiv.className = classStr;
     }
   
-    gameOver(msg, status) {
+    unhideReplay() {
       document.getElementById('replay').hidden = false;
+    }
+
+    hideReplay() {
+      document.getElementById('replay').hidden = true;
+    }
+
+    displayMessage(msg) {
       document.getElementById('message').textContent = `${msg}`;
+    }
+
+    resetGameStatus(status) {
       document.body.className = `${status}`;
-      document.removeEventListener('keyup', this.handleKeyup);
+    }
+
+    gameOver(msg, status) {
+      this.unhideReplay();
+      this.displayMessage(msg);
+      this.resetGameStatus(status);
+      document.removeEventListener('keyup', this.handleKeyupBound);
     }
   
     playerGuessesWord() {
@@ -177,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  let game = new Game();
+  new Game();
 
   document.getElementById('replay').addEventListener('click', e => {
     e.preventDefault();
