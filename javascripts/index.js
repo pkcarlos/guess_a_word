@@ -1,27 +1,3 @@
-// Bind a keypress event to the document that will check the guessed letter against the word
-// Only process key presses that are letters. IN other words, from a to z. You can potentially use the equivalent keycodes for these letters, which run from 97 (a) through 122 (z)
-// Add the letter to the array of guessed letters
-// If the guess matches at least one letter in the word, output each instance of the guessed letter in the respective blank spaces
-// If the guess is not a match, increment the incorrect guess count and change the class name on the apples container to change the count of apples
-// If the letter has already been guessed, ignore it
-
-/*
-- validate key pressed..ignore if key value is not alphabetic or if letter has already been guessed
-- add letter to guessedLetters
-- if guess appears in chosen word
-  - output instances of guessed letter in their respective blank spaces
-- if doesn't appear in chosen word
-  - wrongGuesses ++
-  - change class name in apples container to change count of apples
-  - if wrongguesses === totalGuessesAllowed, game over
-    - Display message and link to start new game.
-    - remove event listener for keyup event
-
-- if Play Another button clicked, new game constructed
-- class on apples container gets reset to show 6 apples
-
-*/
-
 document.addEventListener('DOMContentLoaded', () => {
   let randomWord = function() {
     let words = ['apple', 'banana', 'pear'];
